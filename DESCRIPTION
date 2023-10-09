@@ -1,0 +1,33 @@
+Package: localPCA
+Type: Package
+Title: Detection of structural variants by local PCA
+Version: 0.1.0
+Date: 2023-10-04
+Depends: R (>= 4.1.1)
+Authors@R: 
+    c(person(given = "Stella",
+             family = "Huynh",
+             role = c("aut","cre"),
+             email="stella.huy90@gmail.com",
+             comment = c(ORCID = "0000-0003-4762-7268")
+             ), 
+      person(given = "Marine",
+             family = "Salson",
+             role = c("aut"),
+             email = "marine.salson@etu.umontpellier.fr"
+             ),
+      person(given ="Yves",
+             family = "Vigouroux",
+             role = c("ctb"),
+             email = "yves.vigouroux@ird.fr",
+             comment = c(ORCID = "0000-0002-8361-6040")
+             )
+     )
+Maintainer: The package maintainer Stella Huynh <stella.huy90@gmail.com> and Marine Salson <marine.salson@etu.umontpellier.fr>
+Description: R package tools to run standardised local PCA analyses based on Li & Ralph (2019) method and detect putative inversions.
+    Use four spaces when indenting paragraphs within the Description.
+Imports: lostruct, optparse, tidyverse, data.table, scales, FDRestimation, DescTools, stringr, gtools, valr, dplyr, ggplot2, reshape2
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/stella-huynh/localPCA

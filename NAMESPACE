@@ -1,0 +1,16 @@
+exportPattern("^[[:alpha:]]+")
+
+
+import(lostruct)
+import(optparse)
+import(tidyverse)
+importFrom("data.table","setDT","data.table","fread","foverlaps","is.data.table","as.data.table")
+importFrom("scales","unit_format")
+importFrom("FDRestimation","p.fdr")
+importFrom("DescTools","GTest")
+importFrom("stringr","str_extract")
+importFrom("gtools","mixedsort","mixedorder")
+import(dplyr)
+import(ggplot2)
+importFrom("reshape2","melt")
+
