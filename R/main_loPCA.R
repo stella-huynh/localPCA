@@ -1,8 +1,35 @@
+#' Local PCA analysis based on Li and Ralph (2019)
+#'
+#' @param vcf A VCF file containing populational genome-wide SNP data
+#' @param pos_file A 4-columns data.frame reporting the SNP number, the chromosome name, and the starting and end positions of the SNP-based genomic windows on the given chromosome. Column names are c"(ID", "Chr", "posStart", "posEnd")
+#' @param outDir Output directory where to store local PCA results and figures
+#' @param winsize Size of non-overlapping genomic windows for performing localPCA analysis. (default=1000)
+#' @param wintype Units defining the sizes of genomic windows (option="snps","kb"). (default="snps")
+#' @param k Number of principal components (PCs) to use for calculating the patterns of relatedness between each genomic window (default=2)
+#' @param nMDS Number of MDS dimension to calculate (default=40)
+#' @param plots Whether to plot MDS coordinates along chromosomes (default=TRUE)
+#' @param verbose Whether to display information on the analysis (default=TRUE)
+
+#' @return Returns a list of 7 elements:
+#'         \tabular{ll}{
+#'           winfun \tab \pkg{lostruct} win-function to divide the each chromosome into windows (based on bcftools)\cr
+#'           pcs_all \tab data.frame containing the patterns of relatedness between individuals based on the first k PCs\cr
+#'           rows_na \tab row indices of the data.frame "pcs_all" containing NA\cr
+#'           pcs \tab data.frame "pcs_all" but excluding rows containing NA\cr
+#'           pcdist \tab dissimilarity matrix between all genomic windows\cr
+#'           fit2d \tab list of summarized dissimilarity matrix into nMDS MDS dimensions\cr
+#'           data \tab data.frame containing the results of local PCA analysis\cr
+#'         }
+#'
+#' @export
+#'
+
+
 #loPCA_class = setClass(Class="loPCA",
 #                       representation(snps="function", pcs="matrix", pcdist="matrix", fit2d="matrix", df="data.frame"),
 #                       package="localPCA")
 
-loPCA <- function(vcf, pos_file, outDir, winsize=1000, wintype="snp", k=2, nMDS=40, plots=TRUE, verbose=T) {
+loPCA <- function(vcf, pos_file, outDir, winsize=1000, wintype="snp", k=2, nMDS=40, plots=TRUE, verbose=TRUE) {
 
   ##   !!!!   Requires bcftools to be installed in /usr/bin/   !!!!
 

@@ -31,3 +31,4 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/stella-huynh/localPCA
+RoxygenNote: 7.2.3
