@@ -23,6 +23,8 @@ getRegion(
 
 \item{Gtest_thr}{Minimum threshold for G-test significance (float, default=0.05)}
 
+\item{min_nwin_H1}{Minimum number of genomic windows required to keep a chromosome for further analysis (integer, default=4)}
+
 \item{nwin_gap}{Mininum number of non-significant genomic windows between two significant genomic windows (integer, default=3)}
 
 \item{nwin_cluster}{Minimum number of genomic windows within a regions to define it as an "outlier region" potentially carrying strong within-population structure signal}
@@ -31,9 +33,7 @@ getRegion(
 
 \item{clustsize}{Minimum size (in number of genomic windows) of the intersect portion between two overlapping genomic regions. Required if \option{concat_redundant=TRUE}. (integer, default=10)}
 
-\item{corr_thr}{Minimum threshold for correlation test. Required if \option{concat_redundant=TRUE}. (default=0.6)}
-
-\item{min_nwin}{Minimum number of genomic windows required to keep a chromosome for further analysis (integer, default=4)}
+\item{corr_thr}{Minimum threshold for correlation tests between pairs of overlapped regions. Required if \option{concat_redundant=TRUE}. (default=0.6)}
 }
 \value{
 If \option{concat_redundant=TRUE}, returns a list of 3 elements :

@@ -7,7 +7,7 @@
 loPCA(
   vcf,
   pos_file,
-  outDir,
+  outDir = "localPCA",
   winsize = 1000,
   wintype = "snp",
   k = 2,
@@ -17,7 +17,7 @@ loPCA(
 )
 }
 \arguments{
-\item{vcf}{A VCF file containing populational genome-wide SNP data}
+\item{vcf}{A VCF/BCF file containing populational genome-wide SNP data}
 
 \item{pos_file}{A 4-columns data.frame reporting the SNP number, the chromosome name, and the starting and end positions of the SNP-based genomic windows on the given chromosome. Column names are c"(ID", "Chr", "posStart", "posEnd")}
 

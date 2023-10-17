@@ -26,7 +26,21 @@ Authors@R:
 Maintainer: The package maintainer Stella Huynh <stella.huy90@gmail.com> and Marine Salson <marine.salson@etu.umontpellier.fr>
 Description: R package tools to run standardised local PCA analyses based on Li & Ralph (2019) method and detect putative inversions.
     Use four spaces when indenting paragraphs within the Description.
-Imports: lostruct, optparse, tidyverse, data.table, scales, FDRestimation, DescTools, stringr, gtools, valr, dplyr, ggplot2, reshape2
+Imports: 
+    lostruct,
+    optparse,
+    tidyverse,
+    data.table,
+    scales,
+    FDRestimation,
+    DescTools,
+    stringr,
+    gtools,
+    valr,
+    dplyr,
+    ggplot2,
+    reshape2,
+    magrittr
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -34,6 +48,8 @@ URL: https://github.com/stella-huynh/localPCA
 RoxygenNote: 7.2.3
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 BugReports: https://github.com/stella-huynh/localPCA/issues
+Config/testthat/edition: 3
