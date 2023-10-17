@@ -153,7 +153,8 @@ clusterWin <- function(outWin_IDs, nwin_gap, nwin_cluster) {
 #' Define specific genomic regions harbouring population structure deviating from the genome-wide structure.
 #'
 #' @param data A data.frame with the genomic windows in rows and (4+nMDS) columns. The first four columns should contain "ID", "Chr", "posB" and "posE"
-#' @param outDir Output directory where to store local PCA results and figures. Required if \option{plots=TRUE}
+#' @param outDir Output directory where to store local PCA results and figures (default="loPCA")
+#' @param outPrefix Prefix to use for output files (default="loPCA_output")
 #' @param nMDS Number of MDS dimension inferred (integer, default=40)
 #' @param FDR_thr Minimum threshold for False Discovery Rate (FDR) test significance (float, default=0.05)
 #' @param Gtest_thr Minimum threshold for G-test significance (float, default=0.05)
@@ -182,9 +183,23 @@ clusterWin <- function(outWin_IDs, nwin_gap, nwin_cluster) {
 #'
 
 
-getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4, nwin_gap=5, nwin_cluster=3, concat_redundant=TRUE, clustsize=10, corr_thr=0.6, plots=TRUE, prefix="loPCA_output", outDir="localPCA", verbose=TRUE) {
+getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4, nwin_gap=5, nwin_cluster=3, concat_redundant=TRUE, clustsize=10, corr_thr=0.6, plots=TRUE, outPrefix="loPCA_output", outDir="localPCA", verbose=TRUE) {
 
-  outWinList = detect_outlierWin(data=data, nMDS=nMDS, plots=plots, prefix=prefix, outDir=outDir, verbose=verbose)
+  if(!dir.exists(outDir)) {
+    dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
+    if(verbose) { cat(paste0("\n  ---  Created folder \"", outDir, "\" to store MDS with outliers plots  ---  \n")) }
+  }
+  if(!endsWith(outDir,"/")) { outDir <- paste0(outDir,"/") }
+
+  #-----------------------------------#
+  #---  1. define outlier windows  ---#
+  #-----------------------------------#
+
+  outWinList = detect_outlierWin(data=data, nMDS=nMDS, plots=plots, prefix=outPrefix, outDir=outDir, verbose=verbose)
+
+  #-----------------------------------#
+  #---  2. define outlier regions  ---#
+  #-----------------------------------#
 
   df_win <- outWinList$wins
   tab_region <- data.frame(ID=integer(), MDS=character(), chr=character(), start=integer(), end=integer(), noutliers=integer(), stringsAsFactors=F)
@@ -286,18 +301,24 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
                   dplyr::arrange(by_group=chr,start) %>%
                   dplyr::mutate(SizeRegions=as.numeric(sprintf("%.1f",(end-start)/1000000)))
 
+  #-----------------------------------#
+  #---  3. refine outlier regions  ---#
+  #-----------------------------------#
 
   # if option "concat_redundant" is TRUE (default), returns a list of 3 elements
   if(concat_redundant) {
 
     tabF <- concatReg(winList=outWinList, rtab=tab_region, listRegionWin=listRegionH1, clustsize=clustsize, corr_thr=corr_thr)
-
+    tabF_file <- paste0(outDir,prefix,".table.regions.concat.txt")
+    write.table(tabF, file=tabF_file)
+    if(verbose) { cat(paste("Written table of outlier regions in file:", tabF_file, row.names=F, quote=F, sep="\t")) }
     return(append(outWinList,list(tabF_raw=tab_region, tabF=tabF, listRegionWin=listRegionH1)))
-
 
   # if option "concat_redundant" is FALSE, returns a list of 2 elements
   } else {
 
+    tab_file = paste0(outDir,prefix,".table.regions.txt")
+    write.table(tab_region, file=tab_file, row.names=F, quote=F, sep="\t")
     return(append(outWinList,list(tabF=tab_region, listRegionWin=listRegionH1)))
 
   }

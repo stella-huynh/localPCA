@@ -6,13 +6,18 @@
 \usage{
 detectInv(
   vcf_in,
-  tab_regions,
+  tab_regions = regList$tabF,
   popFile,
-  outDir,
-  bcftools,
-  bgzip,
+  outDir = "localPCA",
   minSize = 2,
+  kmeans.method = "euclidean",
+  kmeans.k = 3,
+  kmeans.iter = 100,
   keep_tmp = FALSE,
+  plots = TRUE,
+  bcftools = "bcftools",
+  vcftools = "vcftools",
+  bgzip = "bgzip",
   verbose = TRUE
 )
 }
@@ -25,13 +30,23 @@ detectInv(
 
 \item{outDir}{Output directory where to store per-region VCFs and associated PCA figures}
 
-\item{bcftools}{By default, bcftools software should be installed in /usr/bin. If this is not the case, use this option to specify the user-defined full path to bcftools}
-
-\item{bgzip}{By default, bgzip software should be installed in /usr/bin. If this is not the case, use this option to specify the user-defined full path to bgzip Required if keep_tmp=TRUE}
-
 \item{minSize}{Minimum size of the outlier genomic regions (in Mb) to analyse. (default=2)}
 
+\item{kmeans.method}{Distance metric used for K-means clustering (default="euclidean")}
+
+\item{kmeans.k}{Number of cluster groups to be inferred by K-means. The expected number to detect inversions is 3 (or 6 in case of nested inversions), but other values are also possible. (default=3)}
+
+\item{kmeans.iter}{Number of K-means iterations to run in order to find the best K-mean clustering (default=100)}
+
 \item{keep_tmp}{Whether to keep the per-region VCF files generated (may take up some space if large genome) (default=FALSE)}
+
+\item{plots}{Whether to generate plots of PCA and heterozygosity boxplots for each region (default=TRUE)}
+
+\item{bcftools}{By default, bcftools software is installed in /usr/bin. If this is not the case (no root permission), use this option to specify your user-defined full path to bcftools}
+
+\item{vcftools}{By default, vcftools software is installed in /usr/bin. If this is not the case (no root permission),use this option to specify your user-defined full path to vcftools}
+
+\item{bgzip}{By default, bgzip software is installed in /usr/bin. If this is not the case (no root permission), use this option to specify your user-defined full path to bgzip Required if keep_tmp=TRUE}
 
 \item{verbose}{Whether to display information on the analysis (default=TRUE)}
 }

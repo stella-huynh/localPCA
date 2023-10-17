@@ -1,7 +1,7 @@
 test_loPCA <- function() {
 
   #---------- Functions ----------
-  `%>%` <- magrittr:: `%>%`
+  #`%>%` <- magrittr:: `%>%`
   library(devtools)
   library(ggplot2)
 
@@ -24,7 +24,7 @@ test_loPCA <- function() {
   prefix="loPCA_output"
   outDir="localPCA"
   verbose=TRUE
-  tab_regions=regList$tabF
+  #tab_regions=regList$tabF
   popFile=pop_file
   minSize=2
   kmeans.method="euclidean"

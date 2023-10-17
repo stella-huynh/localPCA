@@ -5,21 +5,28 @@
 \title{Define specific genomic regions harbouring population structure deviating from the genome-wide structure.}
 \usage{
 getRegion(
-  winList,
+  data,
   nMDS = 40,
+  FDR_thr = 0.05,
   Gtest_thr = 0.05,
   min_nwin_H1 = 4,
   nwin_gap = 5,
   nwin_cluster = 3,
   concat_redundant = TRUE,
   clustsize = 10,
-  corr_thr = 0.6
+  corr_thr = 0.6,
+  plots = TRUE,
+  outPrefix = "loPCA_output",
+  outDir = "localPCA",
+  verbose = TRUE
 )
 }
 \arguments{
-\item{winList}{Output list from \bold{detect_outlierWin}. Must contains 4-levels named: "coor.raw", "coor.cr", "pval" and "fdr"}
+\item{data}{A data.frame with the genomic windows in rows and (4+nMDS) columns. The first four columns should contain "ID", "Chr", "posB" and "posE"}
 
-\item{nMDS}{Number of MDS dimension inferred, (integer, default=40)}
+\item{nMDS}{Number of MDS dimension inferred (integer, default=40)}
+
+\item{FDR_thr}{Minimum threshold for False Discovery Rate (FDR) test significance (float, default=0.05)}
 
 \item{Gtest_thr}{Minimum threshold for G-test significance (float, default=0.05)}
 
@@ -34,6 +41,14 @@ getRegion(
 \item{clustsize}{Minimum size (in number of genomic windows) of the intersect portion between two overlapping genomic regions. Required if \option{concat_redundant=TRUE}. (integer, default=10)}
 
 \item{corr_thr}{Minimum threshold for correlation tests between pairs of overlapped regions. Required if \option{concat_redundant=TRUE}. (default=0.6)}
+
+\item{plots}{Whether to plot MDS coordinates along chromosomes (default=TRUE)}
+
+\item{outPrefix}{Prefix to use for output files (default="loPCA_output")}
+
+\item{outDir}{Output directory where to store local PCA results and figures (default="loPCA")}
+
+\item{verbose}{Whether to display information on the analysis (default=TRUE)}
 }
 \value{
 If \option{concat_redundant=TRUE}, returns a list of 3 elements :

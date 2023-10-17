@@ -39,7 +39,10 @@ Imports:
     valr,
     dplyr,
     ggplot2,
+    ggpubr,
     reshape2,
+    qpdf,
+    rstatix,
     magrittr
 License: MIT + file LICENSE
 Encoding: UTF-8
