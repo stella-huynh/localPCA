@@ -76,19 +76,22 @@ plotPCA <- function(vcf.fn, popFile, outDir, plots=TRUE, verbose=TRUE) {
 
   tabfile <- paste0(outDir, basename(tools::file_path_sans_ext(vcf.fn)), "_coorpca.txt")
   write.table(tab_pc, file=tabfile, quote=F, sep="\t", row.names=F, col.names=T)
+  if(verbose) { cat(paste0("Written table of PCA coordinates in file: \"", tabfile, "\"")) }
 
   gdsfmt::closefn.gds(genofile)
 
 
   plotfile <- paste0(outDir, basename(tools::file_path_sans_ext(vcf.fn)), "_PC1-2.pdf")
-  p1 <- ggplot2::ggplot(tab_pc, aes(x=PC1, y=PC2, col=cols)) +
+
+  p1 <- ggplot2::ggplot(data=tab_pc, aes(x=.data$PC1, y=.data$PC2, col=.data$cols)) +
         ggplot2::scale_color_identity("Populations", guide="legend", labels=unique(tab_pc$pop), breaks=unique(tab_pc$cols)) +
         ggplot2::geom_point(size=8, alpha=0.5) + xlab(paste0("PC1 (",varPC1," %)")) + ylab(paste0("PC2 (",varPC2," %)")) +
         ggplot2::theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                        panel.background = element_rect(fill = 'white'), axis.line=element_line(colour="black"),
                        axis.title = element_text(face="bold", size=16), axis.text = element_text(size=14),
                        legend.title = element_text(face="bold", size=16), legend.text = element_text(size=14))
-  p2 <- ggplot2::ggplot(tab_pc, aes(x=PC1, y=PC2, col=cols, label=sample.id)) +
+
+  p2 <- ggplot2::ggplot(data=tab_pc, aes(x=.data$PC1, y=.data$PC2, col=.data$cols, label=.data$sample.id)) +
         ggplot2::scale_color_identity("Populations", guide="legend", labels=unique(tab_pc$pop), breaks=unique(tab_pc$cols)) +
         ggplot2::geom_point(size=8, alpha=0.5) + xlab(paste0("PC1 (",varPC1," %)")) + ylab(paste0("PC2 (",varPC2," %)")) +
         ggrepel::geom_text_repel(max.overlaps = 100) +
@@ -96,13 +99,15 @@ plotPCA <- function(vcf.fn, popFile, outDir, plots=TRUE, verbose=TRUE) {
                        panel.background = element_rect(fill = 'white'), axis.line=element_line(colour="black"),
                        axis.title = element_text(face="bold", size=16), axis.text = element_text(size=14),
                        legend.title = element_text(face="bold", size=16), legend.text = element_text(size=14))
-  p3 <- ggplot2::ggplot(tab_pc, aes(x=PC1, y=PC2, shape=pop, label=sample.id)) +
+
+  p3 <- ggplot2::ggplot(data=tab_pc, aes(x=.data$PC1, y=.data$PC2, shape=.data$pop, label=.data$sample.id)) +
         ggplot2::geom_point(size=8, col="grey20", alpha=0.7) + xlab(paste0("PC1 (",varPC1," %)")) + ylab(paste0("PC2 (",varPC2," %)")) +
         ggrepel::geom_text_repel(max.overlaps = 100) +
         ggplot2::theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                        panel.background = element_rect(fill = 'white'), axis.line=element_line(colour="black"),
                        axis.title = element_text(face="bold", size=16), axis.text = element_text(size=14),
                        legend.title = element_text(face="bold", size=16), legend.text = element_text(size=14))
+
   l <- mget(c("p1","p2","p3"))
   pdf(plotfile, width=10) ; invisible(lapply(l,print)) ; dev.off()
   png(sub(".pdf",".png",plotfile), height=8, width=10, units="in", pointsize=12, bg="white", res=144) ;  print(p2)  ; dev.off()
@@ -183,8 +188,26 @@ kclust <- function(vcf_in, popFile, outDir, kmeans.method="euclidean", kmeans.k=
 #' @param bcftools By default, bcftools software is installed in /usr/bin. If this is not the case (no root permission), use this option to specify your user-defined full path to bcftools
 #' @param bgzip By default, bgzip software is installed in /usr/bin. If this is not the case (no root permission), use this option to specify your user-defined full path to bgzip Required if keep_tmp=TRUE
 #' @param verbose Whether to display information on the analysis (default=TRUE)
+#'
+#' @export detectInv
+#'
+#' @import ggplot2
+#' @importFrom dplyr filter_at mutate all_vars group_by summarize
+#' @importFrom rstatix wilcox_test add_xy_position
+#' @importFrom ggrepel geom_text_repel
+#' @importFrom ggpubr stat_compare_means
+#' @importFrom SNPRelate snpgdsVCF2GDS snpgdsSummary snpgdsPCA
+#' @importFrom gdsfmt read.gdsn index.gdsn closefn.gds
+#' @importFrom factoextra eclust
+#' @importFrom grDevices dev.off pdf png
+#' @importFrom stats median quantile
+#' @importFrom utils combn read.delim write.table
+#' @importFrom ggsignif geom_signif
+#'
 
-detectInv <- function(vcf_in, tab_regions=regList$tabF, popFile, outDir="localPCA", minSize=2, kmeans.method="euclidean", kmeans.k=3, kmeans.iter=100, keep_tmp=FALSE, plots=TRUE, bcftools="bcftools", vcftools="vcftools", bgzip="bgzip", verbose=TRUE) {
+detectInv <- function(vcf_in, tab_regions, popFile, outDir="localPCA", minSize=2, kmeans.method="euclidean", kmeans.k=3, kmeans.iter=100, keep_tmp=FALSE, plots=TRUE, bcftools="bcftools", vcftools="vcftools", bgzip="bgzip", verbose=TRUE) {
+
+  . <- NULL # used to pass the R CMD CHECK (warning message as : "no visible binding for global variable '.')
 
   if(!dir.exists(outDir)) {
     dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
@@ -220,7 +243,7 @@ detectInv <- function(vcf_in, tab_regions=regList$tabF, popFile, outDir="localPC
     extractVCF(vcf.in=vcf_in, chr=chr, start=start, end=end, vcf.out=vcf_reg, bcftools=bcftools, verbose=verbose)
 
     ## Generate regional PCA k-means plots
-    list_PCAclust[[n]] <- kclust(vcf_in=vcf_reg, popFile=pop_file, outDir=outDir, kmeans.method=kmeans.method, kmeans.k=kmeans.k, kmeans.iter=kmeans.iter, plots=plots, verbose=verbose)
+    list_PCAclust[[n]] <- kclust(vcf_in=vcf_reg, popFile=popFile, outDir=outDir, kmeans.method=kmeans.method, kmeans.k=kmeans.k, kmeans.iter=kmeans.iter, plots=plots, verbose=verbose)
 
     pca_coor <- list_PCAclust[[n]]$pca_coor ; rownames(pca_coor$mat) = NULL
     km_lw <- list_PCAclust[[n]]$km_lw
@@ -273,8 +296,9 @@ detectInv <- function(vcf_in, tab_regions=regList$tabF, popFile, outDir="localPC
     pval_bonfc_001 <- 0.001 ^ ncol(combn(kmeans.k,2))
     pval_text <- paste0("Significance after Bonferroni correction for pairwise comparisons between ", kmeans.k, " samples: * < ", pval_bonfc_05, ", ** < ", pval_bonfc_01, ", *** < ", pval_bonfc_001)
     stat.test <- mat_res %>%
-                   rstatix::wilcox_test(het.obs ~ group, p.adjust.method = "bonferroni") %>%
-                   rstatix::add_xy_position(x="group")
+                 rstatix::wilcox_test(het.obs ~ group, p.adjust.method = "bonferroni") %>%
+                 rstatix::add_xy_position(x="group") %>%
+                 dplyr::slice(1,3,2)
     stat.test$p.adj.bonferroni <- ifelse(stat.test$p < pval_bonfc_001, "***",
                                          ifelse(stat.test$p < pval_bonfc_01, "**",
                                                 ifelse(stat.test$p < pval_bonfc_05, "*", "ns"
@@ -289,7 +313,7 @@ detectInv <- function(vcf_in, tab_regions=regList$tabF, popFile, outDir="localPC
 
     varPC1 <- pca_coor$var[1]
     varPC2 <- pca_coor$var[2]
-    p1 <- ggplot(mat_res, aes(x=PC1, y=PC2, col=group.cols, label=sample.id)) +
+    p1 <- ggplot(data=mat_res, aes(x=.data$PC1, y=.data$PC2, col=.data$group.cols, label=.data$sample.id)) +
           ggtitle("PCA based on SNPs present in candidate structural variant") +
           geom_point(size=8, alpha=0.5) +
           xlab(paste0("PC1 (",varPC1," %)")) +
@@ -302,22 +326,40 @@ detectInv <- function(vcf_in, tab_regions=regList$tabF, popFile, outDir="localPC
                 legend.title = element_text(size=18, face="bold"), legend.text = element_text(size=18),
                 plot.title = element_text(size=20, face="bold"))
 
-    p2 <- ggplot(mat_res, aes(x=group, y=het.obs, fill=group.cols)) +
-          ggtitle("Heterozygosity between the Kmeans-based groups") +
-          geom_boxplot() +
-          scale_fill_identity("Groups",guide="legend", labels=levels(mat_res$group)) +
-          ylab("Proportion of heterozygous sites") +
-          scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.2)) +
-          theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                panel.background = element_rect(fill = 'white'), axis.line = element_line(colour="black"),
-                axis.text = element_text(size=18), axis.title.y = element_text(size=20, face="bold"), axis.title.x = element_blank(),
-                legend.title = element_text(size=18, face="bold"), legend.text = element_text(size=18), legend.position = "right",
-                plot.title = element_text(size=20, face="bold")) +
-          ggpubr::stat_compare_means(comparisons = list(c("hom1","hz"),c("hom2","hz"),c("hom1","hom2")),
-                                     method="wilcox.test",
-                                     p.adjust.method="bonferroni",
-                                     symnum.args=list(cutpoints=c(0,pval_bonfc_001,pval_bonfc_01,pval_bonfc_05,Inf),
-                                                      symbols=c("***","**","*","ns")))
+    if(length(hom1)==1 | length(hom2)==1 | length(hz)==1) {
+      options(warn=0)
+      suppressWarnings({
+        p2 <- ggplot() +
+              geom_boxplot(data=mat_res, aes(x=.data$group, y=.data$het.obs, fill=.data$group.cols)) +
+              scale_y_continuous(limits=c(0,max(mat_res$het.obs)+0.3), breaks=seq(0,1,0.2)) +
+              ggsignif::geom_signif(data=stat.test,
+                                    mapping=aes(xmin=.data$group1,
+                                                xmax=.data$group2,
+                                                annotations=.data$p.adj.bonferroni,
+                                                y_position=c(max(mat_res$het.obs)+0.1, max(mat_res$het.obs)+0.2, max(mat_res$het.obs)+0.3)),
+                                    manual=TRUE)
+      })
+    } else {
+      p2 <- ggplot(data=mat_res, aes(x=.data$group, y=.data$het.obs, fill=.data$group.cols)) +
+            geom_boxplot() +
+            scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.2)) +
+            ggpubr::stat_compare_means(data=mat_res,
+                                       comparisons = list(c("hom1","hz"),c("hom2","hz"),c("hom1","hom2")),
+                                       method="wilcox.test",
+                                       p.adjust.method="bonferroni",
+                                       symnum.args=list(cutpoints=c(0,pval_bonfc_001,pval_bonfc_01,pval_bonfc_05,Inf),
+                                                        symbols=c("***","**","*","ns")))
+    }
+    p2 <- p2 +
+      ggtitle("Heterozygosity between the Kmeans-based groups") +
+      scale_fill_identity("Groups",guide="legend", labels=levels(mat_res$group)) +
+      ylab("Proportion of heterozygous sites") +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+            panel.background = element_rect(fill = 'white'), axis.line = element_line(colour="black"),
+            axis.text = element_text(size=18), axis.title.y = element_text(size=20, face="bold"), axis.title.x = element_blank(),
+            legend.title = element_text(size=18, face="bold"), legend.text = element_text(size=18), legend.position = "right",
+            plot.title = element_text(size=20, face="bold"))
+
 
     plotfile <- paste0(sub(".vcf",".boxplot.pdf",vcf_reg))
     l <- mget(c("p0","p1","p2"))
@@ -330,13 +372,13 @@ detectInv <- function(vcf_in, tab_regions=regList$tabF, popFile, outDir="localPC
     if(verbose) {
       cat("\nObserved heterozygosity: quantile distribution\n")
       print(df_het %>%
-              dplyr::group_by(group) %>%
-              dplyr::summarize(min = min(O.HET),
-                               q1 = quantile(O.HET, 0.25),
-                               median = median(O.HET),
-                               mean = mean(O.HET),
-                               q3 = quantile(O.HET, 0.75),
-                               max = max(O.HET))
+              dplyr::group_by(.data$group) %>%
+              dplyr::summarize(min = min(.data$O.HET),
+                               q1 = quantile(.data$O.HET, 0.25),
+                               median = median(.data$O.HET),
+                               mean = mean(.data$O.HET),
+                               q3 = quantile(.data$O.HET, 0.75),
+                               max = max(.data$O.HET))
       )
       cat("\n\n")
     }

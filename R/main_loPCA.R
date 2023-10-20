@@ -26,7 +26,11 @@
 #'           data \tab data.frame containing the results of local PCA analysis\cr
 #'         }
 #'
-#' @export
+#' @export loPCA
+#' @import lostruct
+#' @import ggplot2
+#' @importFrom scales unit_format
+#' @importFrom utils read.delim
 #'
 
 
@@ -101,11 +105,11 @@ loPCA <- function(vcf, pos_file, outDir="localPCA", winsize=1000, wintype="snp",
 
       if(!file.exists(plotfile_mds)) {
 
-        p <- ggplot(df, aes(x=posB, y=MDS, col=Chr)) +
+        p <- ggplot(data=df, ggplot2::aes(x=.data$posB, y=.data$MDS, col=.data$Chr)) +
              geom_point(size=5, alpha=0.5) +
              facet_grid(.~Chr, scales="free_x", space="free_x") +
              xlab("Chromosome positions (Mb)") + ylab(paste0("MDS",i," coordinates")) +
-             scale_x_continuous(labels = unit_format(unit="", scale=1e-6), breaks = breaks_fun) +
+             scale_x_continuous(labels = scales::unit_format(unit="", scale=1e-6), breaks = breaks_fun) +
              theme(panel.grid.major = element_blank(),
                    panel.grid.minor = element_blank(),
                    panel.background = element_rect(fill = 'white'),

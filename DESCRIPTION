@@ -3,7 +3,7 @@ Type: Package
 Title: Detection of structural variants by local PCA
 Version: 0.1.0
 Date: 2023-10-04
-Depends: R (>= 4.1.1)
+Depends: R (>= 4.1.0)
 Authors@R: 
     c(person(given = "Stella",
              family = "Huynh",
@@ -23,36 +23,45 @@ Authors@R:
              comment = c(ORCID = "0000-0002-8361-6040")
              )
      )
-Maintainer: The package maintainer Stella Huynh <stella.huy90@gmail.com> and Marine Salson <marine.salson@etu.umontpellier.fr>
+Maintainer: Stella Huynh <stella.huy90@gmail.com>
 Description: R package tools to run standardised local PCA analyses based on Li & Ralph (2019) method and detect putative inversions.
     Use four spaces when indenting paragraphs within the Description.
+Remotes:
+    bioc::3.17/SNPRelate,
+    github::hadley/testthat,
+    github::petrelharp/local_pca
+biocViews:
 Imports: 
     lostruct,
-    optparse,
-    tidyverse,
-    data.table,
     scales,
     FDRestimation,
     DescTools,
-    stringr,
     gtools,
-    valr,
     dplyr,
     ggplot2,
     ggpubr,
-    reshape2,
-    qpdf,
+    ggsignif,
+    ggrepel,
     rstatix,
-    magrittr
+    SNPRelate,
+    gdsfmt,
+    factoextra,
+    magrittr,
+    utils,
+    stats,
+    grDevices
+Suggests: 
+    BiocManager,
+    knitr,
+    rmarkdown,
+    devtools,
+    testthat (>= 3.0.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+LazyDataCompression: xz
 URL: https://github.com/stella-huynh/localPCA
 RoxygenNote: 7.2.3
-Suggests: 
-    knitr,
-    rmarkdown,
-    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 BugReports: https://github.com/stella-huynh/localPCA/issues
 Config/testthat/edition: 3

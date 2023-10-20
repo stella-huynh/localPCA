@@ -11,6 +11,8 @@ test_loPCA <- function() {
   pop_file <- "inst/extdata/test_data.popFile.txt"
 
   #variables
+  wintype="snp"
+  k=2
   nMDS=40
   FDR_thr=0.05
   Gtest_thr=0.05
@@ -29,7 +31,7 @@ test_loPCA <- function() {
   minSize=2
   kmeans.method="euclidean"
   kmeans.k=3
-  kmeans.iter=100
+  kmeans.iter=10
   keep_tmp=FALSE
   plots=TRUE
   bcftools="bcftools"

@@ -68,11 +68,11 @@ detect_outlierWin <- function(data, nMDS=40, FDR_thr=0.05, plots=TRUE, prefix="l
       plotfile <- paste0(outDir,prefix,".",i,".outlierWin.pdf")
 
       if(!file.exists(plotfile)) {
-        p_out <- ggplot(tmp, aes(x=posB, y=-log(abs(MDScr), base=10), col=fdr)) +
+        p_out <- ggplot(data=tmp, aes(x=.data$posB, y=-log(abs(.data$MDScr), base=10), col=.data$fdr)) +
                  geom_point(size=5, alpha=0.5) +
                  facet_grid(.~Chr, scales="free_x", space="free_x") +
                  xlab("Chromosome positions (Mb)") + ylab(paste("-log(pvalue)",i)) +
-                 scale_x_continuous(labels = unit_format(unit="", scale=1e-6), breaks = breaks_fun) +
+                 scale_x_continuous(labels = scales::unit_format(unit="", scale=1e-6), breaks = breaks_fun) +
                  theme(panel.grid.major = element_blank(),
                        panel.grid.minor = element_blank(),
                        panel.background = element_rect(fill = 'white'),
@@ -179,11 +179,20 @@ clusterWin <- function(outWin_IDs, nwin_gap, nwin_cluster) {
 #'           listRegionWin \tab a list of regions with their respective window IDs encompassed
 #'         }
 #'
-#' @export
+#' @export getRegion
+#'
+#' @import ggplot2
+#' @importFrom dplyr filter filter_at select all_vars arrange mutate
+#' @importFrom DescTools GTest
+#' @importFrom scales unit_format
+#' @importFrom grDevices dev.off pdf png
+#' @importFrom stats pnorm sd
+#' @importFrom utils read.delim write.table tail
 #'
 
-
 getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4, nwin_gap=5, nwin_cluster=3, concat_redundant=TRUE, clustsize=10, corr_thr=0.6, plots=TRUE, outPrefix="loPCA_output", outDir="localPCA", verbose=TRUE) {
+
+  . <- NULL # used to pass the R CMD CHECK (warning message as : "no visible binding for global variable '.')
 
   if(!dir.exists(outDir)) {
     dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
@@ -223,12 +232,12 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
 
     for (chr in chromosomes) {
 
-      nwin <- nrow(tab %>% dplyr::filter(Chr==chr))
-      nwin_H1 <- nrow(tab %>% dplyr::filter(Chr==chr, fdr=="Reject.H0")) #number of significant windows
+      nwin <- nrow(tab %>% dplyr::filter(.data$Chr==chr))
+      nwin_H1 <- nrow(tab %>% dplyr::filter(.data$Chr==chr, .data$fdr=="Reject.H0")) #number of significant windows
 
       ## 1. If enough significant windows are on the chr :
       if (nwin_H1 > min_nwin_H1) {
-        nwin_H1_tot <- nrow(tab %>% dplyr::filter(fdr=="Reject.H0")) #number of significant windows for the MDS
+        nwin_H1_tot <- nrow(tab %>% dplyr::filter(.data$fdr=="Reject.H0")) #number of significant windows for the MDS
         mat_gtest <- rbind(tot = c(nwin_H1 = nwin_H1_tot, nwin_H0 = nwin_tot-nwin_H1_tot),
                            chr = c(nwin_H1 = nwin_H1, nwin_H0 = nwin-nwin_H1))
         pval_Gtest <- DescTools::GTest(mat_gtest)$p.value
@@ -237,8 +246,8 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
         if (pval_Gtest < Gtest_thr) {
 
           ## 3. Clustering of neighbouring significant windows
-          tab_p <- tab %>% dplyr::select(ID, Chr, posB, posE, coor.raw, fdr) %>%
-                     dplyr::filter(Chr==chr) %>%
+          tab_p <- tab %>% dplyr::select(.data$ID, .data$Chr, .data$posB, .data$posE, .data$coor.raw, .data$fdr) %>%
+                     dplyr::filter(.data$Chr==chr) %>%
                      dplyr::filter_at("coor.raw", dplyr::all_vars(. > 0)) %>%
                      dplyr::filter_at("fdr", dplyr::all_vars(. == "Reject.H0"))
 
@@ -250,10 +259,10 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
                 # nb of outliers windows in the cluster
                 nwin_H1_p <- length(clust_p)
                 # beginning of the cluster
-                first_w <- tab_p %>% dplyr::filter(ID==clust_p[1]) %>% dplyr::select(posB)
+                first_w <- tab_p %>% dplyr::filter(.data$ID==clust_p[1]) %>% dplyr::select(.data$posB)
                 first_pos <- first_w[1,1]
                 # end of the cluster
-                last_w <- tab_p %>% dplyr::filter(ID==clust_p[nwin_H1_p]) %>% dplyr::select(posE)
+                last_w <- tab_p %>% dplyr::filter(.data$ID==clust_p[nwin_H1_p]) %>% dplyr::select(.data$posE)
                 last_pos <- last_w[1,1]
                 # unique ID for each region
                 ID_region <- count_region
@@ -265,10 +274,10 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
           }
 
           ### for negative MDS :
-          tab_n <- tab %>% dplyr::select(ID, Chr, posB, posE, coor.raw, fdr) %>%
-                     dplyr::filter(Chr==chr) %>%
+          tab_n <- tab %>% dplyr::select(.data$ID, .data$Chr, .data$posB, .data$posE, .data$coor.raw, .data$fdr) %>%
+                     dplyr::filter(.data$Chr==chr) %>%
                      dplyr::filter_at("coor.raw", dplyr::all_vars(. < 0)) %>%
-                     dplyr::filter_at("fdr", dplyr::all_vars(. == "Reject.H0"))
+                     dplyr::filter_at("fdr", dplyr::all_vars(.data == "Reject.H0"))
 
           if (nrow(tab_n) > 0) {
             clust_neg <- clusterWin(tab_n[,"ID"], nwin_gap, nwin_cluster)
@@ -278,10 +287,10 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
                 # nb of outliers windows in the cluster
                 nwin_H1_n <- length(clust_n)
                 #beginning of the cluster
-                first_w <- tab_n %>% dplyr::filter(ID==clust_n[1]) %>% dplyr::select(posB)
+                first_w <- tab_n %>% dplyr::filter(.data$ID==clust_n[1]) %>% dplyr::select(.data$posB)
                 first_pos <- first_w[1,1]
                 # end of the cluster
-                last_w <- tab_n %>% dplyr::filter(ID==clust_n[nwin_H1_n]) %>% dplyr::select(posE)
+                last_w <- tab_n %>% dplyr::filter(.data$ID==clust_n[nwin_H1_n]) %>% dplyr::select(.data$posE)
                 last_pos <- last_w[1,1]
                 # unique ID for each region
                 ID_region <- count_region
@@ -298,8 +307,8 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
   }
 
   tab_region <- tab_region %>%
-                  dplyr::arrange(by_group=chr,start) %>%
-                  dplyr::mutate(SizeRegions=as.numeric(sprintf("%.1f",(end-start)/1000000)))
+                  dplyr::arrange(by_group=.data$chr, .data$start) %>%
+                  dplyr::mutate(SizeRegions=as.numeric(sprintf("%.1f",(.data$end-.data$start)/1000000)))
 
   #-----------------------------------#
   #---  3. refine outlier regions  ---#
@@ -309,16 +318,17 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
   if(concat_redundant) {
 
     tabF <- concatReg(winList=outWinList, rtab=tab_region, listRegionWin=listRegionH1, clustsize=clustsize, corr_thr=corr_thr)
-    tabF_file <- paste0(outDir,prefix,".table.regions.concat.txt")
-    write.table(tabF, file=tabF_file)
-    if(verbose) { cat(paste("Written table of outlier regions in file:", tabF_file, row.names=F, quote=F, sep="\t")) }
+    tabF_file <- paste0(outDir,outPrefix,".table.regions.concat.txt")
+    write.table(tabF, file=tabF_file, row.names=F, quote=F, sep="\t")
+    if(verbose) { cat(paste0("Written table of concatenated outlier regions in file: \"", tabF_file, "\"")) }
     return(append(outWinList,list(tabF_raw=tab_region, tabF=tabF, listRegionWin=listRegionH1)))
 
   # if option "concat_redundant" is FALSE, returns a list of 2 elements
   } else {
 
-    tab_file = paste0(outDir,prefix,".table.regions.txt")
+    tab_file = paste0(outDir,outPrefix,".table.regions.txt")
     write.table(tab_region, file=tab_file, row.names=F, quote=F, sep="\t")
+    if(verbose) { cat(paste0("Written table of outlier regions in file: \"", tabF_file, "\"")) }
     return(append(outWinList,list(tabF=tab_region, listRegionWin=listRegionH1)))
 
   }
@@ -348,12 +358,12 @@ concatReg <- function(winList, rtab, listRegionWin, clustsize=10, corr_thr=0.6) 
   ###  The current region is stored "rtab_j".
 
   rtab <- rtab %>%
-               dplyr::mutate(chr = factor(chr, ordered=T, levels = unique(gtools::mixedsort(chr)))) %>%
-               dplyr::arrange(chr,start,end,desc(SizeRegions))
+               dplyr::mutate(chr = factor(.data$chr, ordered=T, levels = unique(gtools::mixedsort(.data$chr)))) %>%
+               dplyr::arrange(.data$chr, .data$start, .data$end, dplyr::desc(.data$SizeRegions))
   df_win <- winList$wins[,c("ID","Chr","posB","posE")]
 
-  tabF <- data.frame(matrix(ncol=ncol(rtab)+1,nrow=0))
-  colnames(tabF) <- c("nID",colnames(rtab))
+  tabF <- data.frame(matrix(ncol=ncol(rtab)+1, nrow=0))
+  colnames(tabF) <- c("nID", colnames(rtab))
   to_remove <- list() #list of genomic regions' IDs judged as redundant and therefore to be ignored in final table.
 
   count=0 #used as IDs for the final concatenated region
@@ -424,8 +434,8 @@ concatReg <- function(winList, rtab, listRegionWin, clustsize=10, corr_thr=0.6) 
 
             tab <- as.data.frame(cbind(df_win, winList$coor.raw[,c(MDS_i,MDS_j)]))
 
-            corrmat_i <- tab %>% dplyr::filter((ID>=firstpos_i)&(ID<=lastpos_i)) %>% dplyr::select(all_of(MDS_i),all_of(MDS_j))  #extract MDS values of those windows for region rtab_i
-            corrmat_j <- tab %>% dplyr::filter((ID>=firstpos_j)&(ID<=lastpos_j)) %>% dplyr::select(all_of(MDS_i),all_of(MDS_j))  #extract MDS values of those windows for region rtab_i
+            corrmat_i <- tab %>% dplyr::filter((.data$ID>=firstpos_i)&(.data$ID<=lastpos_i)) %>% dplyr::select(dplyr::all_of(MDS_i),dplyr::all_of(MDS_j))  #extract MDS values of those windows for region rtab_i
+            corrmat_j <- tab %>% dplyr::filter((.data$ID>=firstpos_j)&(.data$ID<=lastpos_j)) %>% dplyr::select(dplyr::all_of(MDS_i),dplyr::all_of(MDS_j))  #extract MDS values of those windows for region rtab_i
 
             mcor_i <- stats::cor(corrmat_i, method="pearson") #correlation test for MDS values within rtab_i region coordinates
             mcor_j <- stats::cor(corrmat_j, method="pearson") #correlation test for MDS values within rtab_j region coordinates
@@ -497,13 +507,13 @@ concatReg <- function(winList, rtab, listRegionWin, clustsize=10, corr_thr=0.6) 
               if(length(intersect_ij) >= clustsize) {
 
                 if(case==1) {
-                  corrmat_ij <- tab %>% dplyr::filter((ID>=firstpos_j)&(ID<=lastpos_j)) %>% dplyr::select(all_of(MDS_i),all_of(MDS_j))
+                  corrmat_ij <- tab %>% dplyr::filter((.data$ID>=firstpos_j)&(.data$ID<=lastpos_j)) %>% dplyr::select(dplyr::all_of(MDS_i),dplyr::all_of(MDS_j))
                 } else if(case==2) {
-                  corrmat_ij <- tab %>% dplyr::filter((ID>=firstpos_i)&(ID<=lastpos_i)) %>% dplyr::select(all_of(MDS_i),all_of(MDS_j))
+                  corrmat_ij <- tab %>% dplyr::filter((.data$ID>=firstpos_i)&(.data$ID<=lastpos_i)) %>% dplyr::select(dplyr::all_of(MDS_i),dplyr::all_of(MDS_j))
                 } else if(case==3) {
-                  corrmat_ij <- tab %>% dplyr::filter((ID>=firstpos_j)&(ID<=lastpos_i)) %>% dplyr::select(all_of(MDS_i),all_of(MDS_j))
+                  corrmat_ij <- tab %>% dplyr::filter((.data$ID>=firstpos_j)&(.data$ID<=lastpos_i)) %>% dplyr::select(dplyr::all_of(MDS_i),dplyr::all_of(MDS_j))
                 } else if(case==4) {
-                  corrmat_ij <- tab %>% dplyr::filter((ID>=firstpos_i)&(ID<=lastpos_j)) %>% dplyr::select(all_of(MDS_i),all_of(MDS_j))
+                  corrmat_ij <- tab %>% dplyr::filter((.data$ID>=firstpos_i)&(.data$ID<=lastpos_j)) %>% dplyr::select(dplyr::all_of(MDS_i),dplyr::all_of(MDS_j))
                 }
 
                 mcor_ij <- stats::cor(corrmat_ij, method="pearson")

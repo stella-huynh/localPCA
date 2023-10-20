@@ -6,7 +6,7 @@
 \usage{
 detectInv(
   vcf_in,
-  tab_regions = regList$tabF,
+  tab_regions,
   popFile,
   outDir = "localPCA",
   minSize = 2,
