@@ -48,6 +48,12 @@ extractVCF <- function(vcf.in, chr, start, end, vcf.out, bcftools="bcftools", ve
 
 plotPCA <- function(vcf.fn, popFile, outDir, plots=TRUE, verbose=TRUE) {
 
+  if(!dir.exists(outDir)) {
+    dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
+    if(verbose) { cat(paste0("\n  ---  Created folder \"", outDir, "\" to store MDS with outliers plots  ---  \n")) }
+  }
+  if(!endsWith(outDir,"/")) { outDir <- paste0(outDir,"/") }
+
   vcf.gds <- paste0(vcf.fn,".gds")
   SNPRelate::snpgdsVCF2GDS(vcf.fn, vcf.gds, method="biallelic.only", verbose=FALSE)
   if(verbose) { SNPRelate::snpgdsSummary(vcf.gds) }
@@ -122,6 +128,12 @@ plotPCA <- function(vcf.fn, popFile, outDir, plots=TRUE, verbose=TRUE) {
 
 kclust <- function(vcf_in, popFile, outDir, kmeans.method="euclidean", kmeans.k=3, kmeans.iter=100, plots=TRUE, verbose=TRUE) {
 
+  if(!dir.exists(outDir)) {
+    dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
+    if(verbose) { cat(paste0("\n  ---  Created folder \"", outDir, "\" to store MDS with outliers plots  ---  \n")) }
+  }
+  if(!endsWith(outDir,"/")) { outDir <- paste0(outDir,"/") }
+
   pca_coor <- plotPCA(vcf.fn=vcf_in, popFile=popFile, outDir=outDir, plots=plots, verbose=verbose)
 
   # Get best K-means inference (ie. that lowers intraspecific difference the most) over 100 runs
@@ -166,6 +178,54 @@ kclust <- function(vcf_in, popFile, outDir, kmeans.method="euclidean", kmeans.k=
 }
 
 
+## Build and plot genotypes
+
+genoPlot <- function(vcf_in, outDir, ind_sort, bcftools="bcftools", plink="plink", alpha=0.05, keep=FALSE) {
+
+  if(!dir.exists(outDir)) {
+    dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
+    if(verbose) { cat(paste0("\n  ---  Created folder \"", outDir, "\" to store MDS with outliers plots  ---  \n")) }
+  }
+  if(!endsWith(outDir,"/")) { outDir <- paste0(outDir,"/") }
+
+  # convert VCF into PLINK-BED format
+  bed_out <- paste0(outDir, sub(".vcf$|.vcf.gz$",".bed",vcf_in))
+  command_bed <- sprintf("%s --vcf %s --make-bed --out %s", plink, vcf_in, sub(".bed","",bed_out))
+  system(command_bed)
+
+  # identify oulier SNPs with PCAdapt
+  pcad.in <- pcadapt::read.pcadapt(bed_out, type="bed")
+  pcad.res <- pcadapt::pcadapt(pcad.in, K=2)
+  pcad.padj <- stats::p.adjust(pcad.res$pvalues, method="BH")
+  outSNPs <- which(pcad.padj < alpha)
+  pcad.out <- pcadapt::get.pc(pcad.res, outSNPs)
+  colnames(pcad.out) <- c("SNP_number", "PC")
+  pcad.out <- pcad.out %>%
+             rowwise() %>%
+             mutate(sequence = colnames(pcad.out)[SNP_number])
+  pcad.outfile = sub(".bed","_PCADAPT_outlierSNPs.txt",bed_out)
+  write.table(pcad.out, file=pcad.outfile, col.names=FALSE)
+
+  # reorder samples within VCF
+  vcf_out <- paste0(outDir, sub(".vcf$|.vcf.gz$",".PCADAPT.sorted.vcf.gz",vcf_in))
+  if(length(ind_sort)==1) {
+    command_vcfsort = sprintf("%s view -S %s --force-samples -Oz -o %s", bcftools, ind_sort, vcf_out)
+  } else if(length(ind_sort)>1) {
+    command_vcfsort = sprintf("%s view -s %s --force-samples -Oz -o %s", bcftools, paste0(ind_sort, collapse=","), vcf_out)
+  } else {
+    stop("Length of ind_sort = 0. Please provided a valid list of samples.")
+  }
+  system(command_vcfsort)
+
+  # generate genotype table and plot
+  command_geno <- sprintf("generate_tables_of_genotypes.py -v %s -s %s -m %s -p %s -f %s",
+                          vcf_out, outSNPs)
+  system(command_geno)
+
+}
+
+
+
 
 #########################################
 ##   5. Identify putative inversions   ##
@@ -203,9 +263,9 @@ kclust <- function(vcf_in, popFile, outDir, kmeans.method="euclidean", kmeans.k=
 #' @importFrom stats median quantile
 #' @importFrom utils combn read.delim write.table
 #' @importFrom ggsignif geom_signif
-#'
+#' @importFrom pcadapt read.pcadapt pcadapt get.pc
 
-detectInv <- function(vcf_in, tab_regions, popFile, outDir="localPCA", minSize=2, kmeans.method="euclidean", kmeans.k=3, kmeans.iter=100, keep_tmp=FALSE, plots=TRUE, bcftools="bcftools", vcftools="vcftools", bgzip="bgzip", verbose=TRUE) {
+detectInv <- function(vcf_in, tab_regions, popFile, outDir="localPCA", minSize=2, kmeans.method="euclidean", kmeans.k=3, kmeans.iter=100, keep_tmp=FALSE, plots=TRUE, bcftools="bcftools", vcftools="vcftools", plink="plink", bgzip="bgzip", verbose=TRUE) {
 
   . <- NULL # used to pass the R CMD CHECK (warning message as : "no visible binding for global variable '.')
 

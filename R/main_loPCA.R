@@ -90,8 +90,8 @@ loPCA <- function(vcf, pos_file, outDir="localPCA", winsize=1000, wintype="snp",
     if(!dir.exists(outDir)) {
       dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
       if(verbose) { cat(paste0("\n  ---  Created folder \"", outDir, "\" to store MDS plots  ---  \n")) }
-      if(!endsWith(outDir,"/")) { outDir <- paste0(outDir,"/") }
     }
+    if(!endsWith(outDir,"/")) { outDir <- paste0(outDir,"/") }
 
     df_win <- read.delim(pos_file) #table with windows start/end positions along the genome
     colnames(df_win) <- c("ID","Chr","posB","posE")

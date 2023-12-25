@@ -1,9 +1,8 @@
 Package: localPCA
 Type: Package
-Title: Detection of structural variants by local PCA
+Title: Detection of Structural Variants by Local PCA
 Version: 0.1.0
 Date: 2023-10-04
-Depends: R (>= 4.1.0)
 Authors@R: 
     c(person(given = "Stella",
              family = "Huynh",
@@ -16,6 +15,24 @@ Authors@R:
              role = c("aut"),
              email = "marine.salson@etu.umontpellier.fr"
              ),
+      person(given ="Cécile",
+             family = "Berthouly",
+             role = c("ctb"),
+             email = "cecile.berthouly@ird.fr",
+             comment = c(ORCID = "0000-0002-0685-6745")
+             ),
+      person(given ="Anne-Céline",
+             family = "Thuillet",
+             role = c("ctb"),
+             email = "anne-celine.thuillet@ird.fr",
+             comment = c(ORCID = "0000-0003-0774-2421")
+             ),
+      person(given ="Cédric",
+             family = "Mariac",
+             role = c("ctb"),
+             email = "cedric.mariac@ird.fr",
+             comment = c(ORCID = "0000-0001-6439-115X")
+             ),
       person(given ="Yves",
              family = "Vigouroux",
              role = c("ctb"),
@@ -25,14 +42,15 @@ Authors@R:
      )
 Maintainer: Stella Huynh <stella.huy90@gmail.com>
 Description: R package tools to run standardised local PCA analyses based on Li & Ralph (2019) method and detect putative inversions.
-    Use four spaces when indenting paragraphs within the Description.
+Depends: 
+    R (>= 4.1.0),
+    lostruct
 Remotes:
     bioc::3.17/SNPRelate,
     github::hadley/testthat,
     github::petrelharp/local_pca
 biocViews:
-Imports: 
-    lostruct,
+Imports:
     scales,
     FDRestimation,
     DescTools,
@@ -49,14 +67,18 @@ Imports:
     magrittr,
     utils,
     stats,
-    grDevices
-Suggests: 
+    grDevices,
+    pcadapt
+Suggests:
     BiocManager,
     knitr,
     rmarkdown,
+    remotes,
     devtools,
     testthat (>= 3.0.0)
-License: MIT + file LICENSE
+Additional_repositories:
+    https://github.com/petrelharp/local_pca/lostruct
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 LazyDataCompression: xz

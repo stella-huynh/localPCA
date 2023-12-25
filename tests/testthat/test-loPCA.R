@@ -1,3 +1,5 @@
+# https://covid19r.github.io/documentation/unit-tests-for-data-packages.html
+
 test_loPCA <- function() {
 
   #---------- Functions ----------
@@ -10,7 +12,7 @@ test_loPCA <- function() {
   pos_file <- "inst/extdata/test_data.snp100.pos.txt"
   pop_file <- "inst/extdata/test_data.popFile.txt"
 
-  #variables
+  #variables (needed if debugging)
   wintype="snp"
   k=2
   nMDS=40
@@ -54,4 +56,3 @@ test_loPCA <- function() {
 }
 
 
-# https://covid19r.github.io/documentation/unit-tests-for-data-packages.html
