@@ -85,7 +85,7 @@ loPCA <- function(vcf, pos_file, outDir="localPCA", winsize=1000, wintype="snp",
 
   if(plots) {
 
-    if(verbose) { cat("\n#  ***  A- 4b. Visualize MDS  ***  #\n") }
+    if(verbose) { cat("\n#  ***  A- 4b. Generate and Visualize MDS table  ***  #\n") }
 
     if(!dir.exists(outDir)) {
       dir.create(path=outDir, showWarnings=FALSE, recursive=TRUE)
@@ -132,9 +132,11 @@ loPCA <- function(vcf, pos_file, outDir="localPCA", winsize=1000, wintype="snp",
 
   } else {
 
+    if(verbose) { cat("\n#  ***  A- 4b. Generate full MDS table  ***  #\n") }
+
     df_win <- read.delim(pos_file) #table with windows start/end positions along the genome
-    colnames(df_win) <- c("ID","Chr","posB","posE")
     df <- cbind(df_win[pcs_row_ok,], as.data.frame(fit2d$points)) #keep only windows without NA values
+    colnames(df) <- c("ID","Chr","posB","posE", paste0("MDS",1:nMDS))
 
   }
 
