@@ -277,7 +277,7 @@ getRegion <- function(data, nMDS=40, FDR_thr=0.05, Gtest_thr=0.05, min_nwin_H1=4
           tab_n <- tab %>% dplyr::select(.data$ID, .data$Chr, .data$posB, .data$posE, .data$coor.raw, .data$fdr) %>%
                      dplyr::filter(.data$Chr==chr) %>%
                      dplyr::filter_at("coor.raw", dplyr::all_vars(. < 0)) %>%
-                     dplyr::filter_at("fdr", dplyr::all_vars(.data == "Reject.H0"))
+                     dplyr::filter_at("fdr", dplyr::all_vars(. == "Reject.H0"))
 
           if (nrow(tab_n) > 0) {
             clust_neg <- clusterWin(tab_n[,"ID"], nwin_gap, nwin_cluster)
