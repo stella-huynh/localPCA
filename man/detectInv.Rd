@@ -17,6 +17,7 @@ detectInv(
   plots = TRUE,
   bcftools = "bcftools",
   vcftools = "vcftools",
+  plink = "plink",
   bgzip = "bgzip",
   verbose = TRUE
 )

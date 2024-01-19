@@ -48,7 +48,7 @@ Depends:
 Remotes:
     bioc::3.17/SNPRelate,
     github::hadley/testthat,
-    github::petrelharp/local_pca
+    github::petrelharp/local_pca/lostruct
 biocViews:
 Imports:
     scales,
@@ -77,7 +77,7 @@ Suggests:
     devtools,
     testthat (>= 3.0.0)
 Additional_repositories:
-    https://github.com/petrelharp/local_pca/lostruct
+    https://github.com/petrelharp/local_pca/tree/master/lostruct
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

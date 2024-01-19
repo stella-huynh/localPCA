@@ -1,5 +1,8 @@
 # https://covid19r.github.io/documentation/unit-tests-for-data-packages.html
 
+# For developer
+# load_all()
+
 test_loPCA <- function() {
 
   #---------- Functions ----------
