@@ -12,7 +12,7 @@ Authors@R:
              ), 
       person(given = "Marine",
              family = "Salson",
-             role = c("aut"),
+             role = c("aut","cre"),
              email = "marine.salson@etu.umontpellier.fr"
              ),
       person(given ="Cécile",
