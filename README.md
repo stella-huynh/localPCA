@@ -20,10 +20,15 @@ detectInv()
 
 ## Installation
 
-You can install the development version of localPCA like so:
+You can install the development version of localPCA either directly in R:
 
 ``` r
-git clone git@github.com:stella-huynh/localPCA.git
+devtools::install_github("stella-huynh/localPCA")
+```
+or by cloning the repository:
+``` r
+git clone git@github.com:stella-huynh/localPCA.git #local bash command-line
+devtools::build("<path/to/package>") #in R
 ```
 
 ## Example dataset
