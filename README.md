@@ -4,7 +4,12 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-localPCA is an R-package that uses the R-package [lostruct](https://github.com/petrelharp/local_pca/tree/master) to perform genome-wide local PCA scans (following [Li & Ralph 2019](https://doi.org/10.1534/genetics.118.301747) method) through a reproducible pipeline. The pipeline is divided into three main functions in the R-package: 
+localPCA is an R-package that uses the R-package [lostruct](https://github.com/petrelharp/local_pca/tree/master) to perform genome-wide local PCA scans (following [Li & Ralph 2019](https://doi.org/10.1534/genetics.118.301747) method) through a reproducible pipeline. 
+
+This is the github version of the package. The original version can be found on IRD Forge, [here](https://forge.ird.fr/diade/dynadiv/inversions_detection_code/-/tree/main/localPCA).
+This package and the methods implemented have been jointly developped with [Marine Salson](https://github.com/msalson) and will soon be published (tba).
+
+The pipeline is divided into three main functions in the R-package: 
 ```r
 # actual lostruct() analysis run across a defined window-size.
 loPCA()
